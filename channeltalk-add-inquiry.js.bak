@@ -1,0 +1,67 @@
+// 채널톡 코드 노드 - 문의인입 기록
+// 고객 정보를 구글시트 '문의인입' 시트에 추가 (A~D열)
+// 아래 코드를 채널톡 코드 노드에 복사해서 사용하세요
+
+const axios = require('axios');
+
+// API 설정
+const API_URL = 'https://channel-talk-sheets-api.vercel.app/api/sheets-add-inquiry';
+
+// 고객 정보 가져오기
+const name = context.user?.name || '';
+const mobileNumber = context.user?.profile?.mobileNumber || '';
+
+// 메모리에서 action_date, request 가져오기
+const actionDate = memory.get('action_date') || '';
+const request = memory.get('request') || '';
+
+console.log('[정보수집] 문의인입 기록 준비');
+console.log(`   이름: ${name}`);
+console.log(`   전화번호: ${mobileNumber}`);
+console.log(`   일정: ${actionDate}`);
+console.log(`   요청사항: ${request}`);
+
+// API 호출
+try {
+  const response = await axios.post(
+    API_URL,
+    {
+      name: name,
+      mobile_number: mobileNumber,
+      action_date: actionDate,
+      request: request
+    },
+    {
+      timeout: 30000
+    }
+  );
+
+  console.log('[성공] API 응답:', JSON.stringify(response.data));
+
+  if (response.data.status === 'success') {
+    console.log(`[성공] 문의인입 기록 완료!`);
+    console.log(`   추가된 행: ${response.data.row}`);
+
+    // 성공 여부 메모리에 저장
+    memory.put('success_fail', '성공');
+    memory.save();
+  } else {
+    console.log('[실패] 문의인입 기록 실패');
+
+    // 실패 여부 메모리에 저장
+    memory.put('success_fail', '실패');
+    memory.save();
+  }
+
+} catch (error) {
+  console.log('[오류] API 호출 실패:', error.message);
+
+  if (error.response) {
+    console.log('   상태 코드:', error.response.status);
+    console.log('   오류 내용:', JSON.stringify(error.response.data));
+  }
+
+  // 실패 여부 메모리에 저장
+  memory.put('success_fail', '실패');
+  memory.save();
+}
