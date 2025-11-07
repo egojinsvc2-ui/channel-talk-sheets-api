@@ -3,7 +3,7 @@ Google Sheets 전화번호 검색 API
 채널톡에서 고객 전화번호를 받아 2개의 Google Sheets 문서에서 검색
 1. 수도권 문서 검색
 2. 못 찾으면 지방 문서 검색
-매칭된 행의 C열(action_date), F열(product_list) 값을 반환
+매칭된 행의 C열(action_date), D열(change_date), F열(product_list) 값을 반환
 """
 
 from http.server import BaseHTTPRequestHandler
@@ -67,14 +67,15 @@ def search_phone_in_sheet(sheets_service, sheet_id, normalized_phone):
                 found_row = row_idx + 1  # 행 번호는 1부터 시작
                 print(f"전화번호 찾음: 시트={sheet_name}, 행={found_row}")
 
-                # 매칭된 행의 C열, F열 값 가져오기
-                row_data = get_row_data(sheets_service, sheet_id, sheet_name, found_row, ['C', 'F'])
+                # 매칭된 행의 C열, D열, F열 값 가져오기
+                row_data = get_row_data(sheets_service, sheet_id, sheet_name, found_row, ['C', 'D', 'F'])
 
                 return {
                     'found': True,
                     'sheet_name': sheet_name,
                     'row': found_row,
                     'action_date': row_data.get('C', ''),
+                    'change_date': row_data.get('D', ''),
                     'product_list': row_data.get('F', '')
                 }
 
@@ -133,7 +134,7 @@ class handler(BaseHTTPRequestHandler):
 
             # 결과 반환
             if result['found']:
-                print(f"결과: 시트={result['sheet_name']}, 행={result['row']}, 일정={result['action_date']}")
+                print(f"결과: 시트={result['sheet_name']}, 행={result['row']}, 일정={result['action_date']}, 변경일={result.get('change_date', '')}")
 
                 self._set_headers(200)
                 response = {
@@ -142,6 +143,7 @@ class handler(BaseHTTPRequestHandler):
                     'sheet_name': result['sheet_name'],
                     'row': result['row'],
                     'action_date': result['action_date'],
+                    'change_date': result.get('change_date', ''),
                     'product_list': result['product_list'],
                     'phone_normalized': normalized_phone
                 }
@@ -156,6 +158,7 @@ class handler(BaseHTTPRequestHandler):
                     'status': 'success',
                     'found': False,
                     'action_date': '',
+                    'change_date': '',
                     'product_list': '',
                     'phone_normalized': normalized_phone,
                     'message': '일치하는 전화번호를 찾을 수 없습니다'
