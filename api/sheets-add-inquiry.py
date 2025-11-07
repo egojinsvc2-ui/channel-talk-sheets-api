@@ -18,7 +18,7 @@ sys.path.append(os.path.dirname(__file__))
 from utils.sheets_common import get_sheets_service
 
 # Google Sheets 문서 ID (수도권)
-SHEET_ID = '1bADgRJlufpAoBGsDtyUWsHVAtmNe3ocYbcs9F3WnsCk    '
+SHEET_ID = '1bADgRJlufpAoBGsDtyUWsHVAtmNe3ocYbcs9F3WnsCk'
 INQUIRY_SHEET_NAME = '문의인입'
 
 
