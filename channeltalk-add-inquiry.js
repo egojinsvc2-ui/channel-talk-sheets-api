@@ -62,9 +62,23 @@ try {
   if (error.response) {
     console.log('   상태 코드:', error.response.status);
     console.log('   오류 내용:', JSON.stringify(error.response.data));
+
+    // 실패 여부와 에러 정보 메모리에 저장
+    memory.put('success_fail', '실패');
+    memory.put('error_status', error.response.status);
+    memory.put('error_message', JSON.stringify(error.response.data));
+  } else if (error.request) {
+    console.log('   요청은 보냈으나 응답 없음');
+    console.log('   요청 정보:', error.request);
+
+    memory.put('success_fail', '실패');
+    memory.put('error_message', '서버 응답 없음 - Vercel 배포 확인 필요');
+  } else {
+    console.log('   요청 설정 중 오류:', error.message);
+
+    memory.put('success_fail', '실패');
+    memory.put('error_message', error.message);
   }
 
-  // 실패 여부 메모리에 저장
-  memory.put('success_fail', '실패');
   memory.save();
 }
