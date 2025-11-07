@@ -3,9 +3,10 @@ Google Sheets 문의인입 추가 API
 채널톡에서 고객 정보를 받아 '문의인입' 시트의 마지막 행에 추가
 A열: name
 B열: mobile_number
-C열: action_date (기존일정)
-D열: change_date (변경원하는 일정)
-E열: request
+C열: sheet_name (시트명)
+D열: action_date (기존일정)
+E열: change_date (변경원하는 일정)
+F열: request
 """
 
 from http.server import BaseHTTPRequestHandler
@@ -52,11 +53,12 @@ class handler(BaseHTTPRequestHandler):
             # 파라미터 가져오기 (없으면 빈 문자열)
             name = request_data.get('name', '')
             mobile_number = request_data.get('mobile_number', '')
+            sheet_name = request_data.get('sheet_name', '')
             action_date = request_data.get('action_date', '')
             change_date = request_data.get('change_date', '')
             request_text = request_data.get('request', '')
 
-            print(f"문의인입 추가: name={name}, mobile={mobile_number}, action_date={action_date}, change_date={change_date}")
+            print(f"문의인입 추가: name={name}, mobile={mobile_number}, sheet_name={sheet_name}, action_date={action_date}, change_date={change_date}")
 
             # Google Sheets 서비스 생성
             sheets_service = get_sheets_service()
@@ -74,11 +76,11 @@ class handler(BaseHTTPRequestHandler):
 
             print(f"현재 마지막 행: {last_row}, 추가할 행: {next_row}")
 
-            # A부터 E열까지 데이터 준비
-            row_data = [[name, mobile_number, action_date, change_date, request_text]]
+            # A부터 F열까지 데이터 준비
+            row_data = [[name, mobile_number, sheet_name, action_date, change_date, request_text]]
 
-            # 한 번에 A~E열에 데이터 쓰기
-            range_notation = f"'{INQUIRY_SHEET_NAME}'!A{next_row}:E{next_row}"
+            # 한 번에 A~F열에 데이터 쓰기
+            range_notation = f"'{INQUIRY_SHEET_NAME}'!A{next_row}:F{next_row}"
 
             sheets_service.spreadsheets().values().update(
                 spreadsheetId=SHEET_ID,
@@ -98,6 +100,7 @@ class handler(BaseHTTPRequestHandler):
                 'data': {
                     'name': name,
                     'mobile_number': mobile_number,
+                    'sheet_name': sheet_name,
                     'action_date': action_date,
                     'change_date': change_date,
                     'request': request_text
