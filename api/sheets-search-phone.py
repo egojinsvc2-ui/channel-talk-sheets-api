@@ -3,7 +3,13 @@ Google Sheets 전화번호 검색 API
 채널톡에서 고객 전화번호를 받아 2개의 Google Sheets 문서에서 검색
 1. 수도권 문서 검색
 2. 못 찾으면 지방 문서 검색
-매칭된 행의 C열(action_date), D열(change_date), F열(product_list) 값을 반환
+
+열 구조:
+A-접수날짜, B-요청날짜, C-처리날짜, D-기사명, E-고객명
+F-상품명/증상, G-접수내용, H-휴대폰번호, I-전화번호
+
+전화번호 조회: H열, I열
+반환 데이터: F열(상품명,증상)
 """
 
 from http.server import BaseHTTPRequestHandler
@@ -44,39 +50,37 @@ def search_phone_in_sheet(sheets_service, sheet_id, normalized_phone):
     sheet_names = get_all_sheet_names(sheets_service, sheet_id)
     print(f"문서 {sheet_id[:10]}...: {len(sheet_names)}개 시트 검색 중")
 
-    # 모든 시트의 G열, H열 데이터 한 번에 가져오기 (배치 읽기)
-    all_data = batch_get_columns(sheets_service, sheet_id, sheet_names, ['G', 'H'])
+    # 모든 시트의 H열(휴대폰번호), I열(전화번호) 데이터 한 번에 가져오기 (배치 읽기)
+    all_data = batch_get_columns(sheets_service, sheet_id, sheet_names, ['H', 'I'])
 
     # 전화번호 검색
     for sheet_name in sheet_names:
-        g_column = all_data[sheet_name].get('G', [])
-        h_column = all_data[sheet_name].get('H', [])
+        h_column = all_data[sheet_name].get('H', [])  # 휴대폰번호
+        i_column = all_data[sheet_name].get('I', [])  # 전화번호
 
-        # 각 행을 순회하며 G열 또는 H열에서 전화번호 찾기
-        max_rows = max(len(g_column), len(h_column))
+        # 각 행을 순회하며 H열 또는 I열에서 전화번호 찾기
+        max_rows = max(len(h_column), len(i_column))
 
         for row_idx in range(max_rows):
-            # G열 값 확인
-            g_value = g_column[row_idx][0] if row_idx < len(g_column) and len(g_column[row_idx]) > 0 else ''
-            # H열 값 확인
+            # H열 값 확인 (휴대폰번호)
             h_value = h_column[row_idx][0] if row_idx < len(h_column) and len(h_column[row_idx]) > 0 else ''
+            # I열 값 확인 (전화번호)
+            i_value = i_column[row_idx][0] if row_idx < len(i_column) and len(i_column[row_idx]) > 0 else ''
 
-            # 전화번호 비교 (G열 또는 H열 중 하나라도 매칭되면 OK)
-            if compare_phone_numbers(g_value, normalized_phone) or \
-               compare_phone_numbers(h_value, normalized_phone):
+            # 전화번호 비교 (H열 또는 I열 중 하나라도 매칭되면 OK)
+            if compare_phone_numbers(h_value, normalized_phone) or \
+               compare_phone_numbers(i_value, normalized_phone):
                 found_row = row_idx + 1  # 행 번호는 1부터 시작
                 print(f"전화번호 찾음: 시트={sheet_name}, 행={found_row}")
 
-                # 매칭된 행의 C열, D열, F열 값 가져오기
-                row_data = get_row_data(sheets_service, sheet_id, sheet_name, found_row, ['C', 'D', 'F'])
+                # 매칭된 행의 F열(상품명,증상) 값 가져오기
+                row_data = get_row_data(sheets_service, sheet_id, sheet_name, found_row, ['F'])
 
                 return {
                     'found': True,
                     'sheet_name': sheet_name,
                     'row': found_row,
-                    'action_date': row_data.get('C', ''),
-                    'change_date': row_data.get('D', ''),
-                    'product_list': row_data.get('F', '')
+                    'product_info': row_data.get('F', '')  # 상품명,증상
                 }
 
     # 찾지 못함
@@ -134,7 +138,7 @@ class handler(BaseHTTPRequestHandler):
 
             # 결과 반환
             if result['found']:
-                print(f"결과: 시트={result['sheet_name']}, 행={result['row']}, 일정={result['action_date']}, 변경일={result.get('change_date', '')}")
+                print(f"결과: 시트={result['sheet_name']}, 행={result['row']}, 상품정보={result['product_info']}")
 
                 self._set_headers(200)
                 response = {
@@ -142,9 +146,7 @@ class handler(BaseHTTPRequestHandler):
                     'found': True,
                     'sheet_name': result['sheet_name'],
                     'row': result['row'],
-                    'action_date': result['action_date'],
-                    'change_date': result.get('change_date', ''),
-                    'product_list': result['product_list'],
+                    'product_info': result['product_info'],  # 상품명,증상 (F열)
                     'phone_normalized': normalized_phone
                 }
                 self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
@@ -157,9 +159,7 @@ class handler(BaseHTTPRequestHandler):
                 response = {
                     'status': 'success',
                     'found': False,
-                    'action_date': '',
-                    'change_date': '',
-                    'product_list': '',
+                    'product_info': '',
                     'phone_normalized': normalized_phone,
                     'message': '일치하는 전화번호를 찾을 수 없습니다'
                 }

@@ -1,6 +1,13 @@
 // 채널톡 코드 노드 - 전화번호로 고객 정보 검색
 // 수도권/지방 문서 자동 검색
 // 아래 코드를 채널톡 코드 노드에 복사해서 사용하세요
+//
+// 열 구조:
+// A-접수날짜, B-요청날짜, C-처리날짜, D-기사명, E-고객명
+// F-상품명/증상, G-접수내용, H-휴대폰번호, I-전화번호
+//
+// 전화번호 조회: H열, I열
+// 반환 데이터: F열(상품명,증상) → product_info
 
 const axios = require('axios');
 
@@ -12,8 +19,7 @@ const phoneNumber = context.user.profile?.mobileNumber;
 
 if (!phoneNumber) {
   console.log('[경고] 전화번호가 없습니다');
-  memory.put('action_date', '');
-  memory.put('product_list', '');
+  memory.put('product_info', '');
   memory.save();
   return;
 }
@@ -36,21 +42,17 @@ try {
 
   if (response.data.found) {
     // 전화번호를 찾은 경우
-    const actionDate = response.data.action_date || '';
-    const productList = response.data.product_list || '';
+    const productInfo = response.data.product_info || '';
 
-    memory.put('action_date', actionDate);
-    memory.put('product_list', productList);
+    memory.put('product_info', productInfo);
 
     console.log('[성공] 고객 정보 찾음!');
     console.log(`   시트: ${response.data.sheet_name}`);
     console.log(`   행: ${response.data.row}`);
-    console.log(`   일정: ${actionDate}`);
-    console.log(`   접수내용: ${productList}`);
+    console.log(`   상품정보: ${productInfo}`);
   } else {
     // 전화번호를 찾지 못한 경우
-    memory.put('action_date', '');
-    memory.put('product_list', '');
+    memory.put('product_info', '');
 
     console.log('[실패] 고객 정보를 찾을 수 없습니다');
   }
@@ -65,7 +67,6 @@ try {
     console.log('   오류 내용:', JSON.stringify(error.response.data));
   }
 
-  memory.put('action_date', '');
-  memory.put('product_list', '');
+  memory.put('product_info', '');
   memory.save();
 }
