@@ -76,11 +76,16 @@ def search_phone_in_sheet(sheets_service, sheet_id, normalized_phone):
                 # 매칭된 행의 C열(처리날짜), F열(상품명,증상) 값 가져오기
                 row_data = get_row_data(sheets_service, sheet_id, sheet_name, found_row, ['C', 'F'])
 
+                # 처리날짜에서 시간 부분 제거 (00:00:00)
+                action_date = row_data.get('C', '')
+                if ' 00:00:00' in action_date:
+                    action_date = action_date.replace(' 00:00:00', '')
+
                 return {
                     'found': True,
                     'sheet_name': sheet_name,
                     'row': found_row,
-                    'action_date': row_data.get('C', ''),  # 처리날짜
+                    'action_date': action_date,  # 처리날짜
                     'product_list': row_data.get('F', '')  # 상품명,증상
                 }
 
