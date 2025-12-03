@@ -44,16 +44,18 @@ try {
 
   if (response.data.found) {
     // 전화번호를 찾은 경우
+    const actionDate = response.data.action_date || '';
     const productList = response.data.product_list || '';
     const sheetName = response.data.sheet_name || '';
 
-    memory.put('action_date', '');
+    memory.put('action_date', actionDate);
     memory.put('product_list', productList);
     memory.put('sheet_name', sheetName);
 
     console.log('[성공] 고객 정보 찾음!');
     console.log(`   시트: ${sheetName}`);
     console.log(`   행: ${response.data.row}`);
+    console.log(`   처리날짜: ${actionDate}`);
     console.log(`   상품정보: ${productList}`);
   } else {
     // 전화번호를 찾지 못한 경우

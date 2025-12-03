@@ -73,13 +73,14 @@ def search_phone_in_sheet(sheets_service, sheet_id, normalized_phone):
                 found_row = row_idx + 1  # 행 번호는 1부터 시작
                 print(f"전화번호 찾음: 시트={sheet_name}, 행={found_row}")
 
-                # 매칭된 행의 F열(상품명,증상) 값 가져오기
-                row_data = get_row_data(sheets_service, sheet_id, sheet_name, found_row, ['F'])
+                # 매칭된 행의 C열(처리날짜), F열(상품명,증상) 값 가져오기
+                row_data = get_row_data(sheets_service, sheet_id, sheet_name, found_row, ['C', 'F'])
 
                 return {
                     'found': True,
                     'sheet_name': sheet_name,
                     'row': found_row,
+                    'action_date': row_data.get('C', ''),  # 처리날짜
                     'product_list': row_data.get('F', '')  # 상품명,증상
                 }
 
@@ -146,7 +147,7 @@ class handler(BaseHTTPRequestHandler):
                     'found': True,
                     'sheet_name': result['sheet_name'],
                     'row': result['row'],
-                    'action_date': '',  # 성공시 빈값
+                    'action_date': result.get('action_date', ''),  # 처리날짜 (C열)
                     'product_list': result['product_list'],  # 상품명,증상 (F열)
                     'phone_normalized': normalized_phone
                 }
