@@ -146,6 +146,7 @@ class handler(BaseHTTPRequestHandler):
                     'found': True,
                     'sheet_name': result['sheet_name'],
                     'row': result['row'],
+                    'action_date': '',  # 성공시 빈값
                     'product_list': result['product_list'],  # 상품명,증상 (F열)
                     'phone_normalized': normalized_phone
                 }
@@ -159,6 +160,7 @@ class handler(BaseHTTPRequestHandler):
                 response = {
                     'status': 'success',
                     'found': False,
+                    'action_date': '',  # 성공시 빈값
                     'product_list': '',
                     'phone_normalized': normalized_phone,
                     'message': '일치하는 전화번호를 찾을 수 없습니다'

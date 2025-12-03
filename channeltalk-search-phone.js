@@ -19,6 +19,7 @@ const phoneNumber = context.user.profile?.mobileNumber;
 
 if (!phoneNumber) {
   console.log('[경고] 전화번호가 없습니다');
+  memory.put('action_date', '전화번호가 없습니다');
   memory.put('product_list', '');
   memory.put('sheet_name', '');
   memory.save();
@@ -46,6 +47,7 @@ try {
     const productList = response.data.product_list || '';
     const sheetName = response.data.sheet_name || '';
 
+    memory.put('action_date', '');
     memory.put('product_list', productList);
     memory.put('sheet_name', sheetName);
 
@@ -55,6 +57,7 @@ try {
     console.log(`   상품정보: ${productList}`);
   } else {
     // 전화번호를 찾지 못한 경우
+    memory.put('action_date', '');
     memory.put('product_list', '');
     memory.put('sheet_name', '');
 
@@ -71,6 +74,7 @@ try {
     console.log('   오류 내용:', JSON.stringify(error.response.data));
   }
 
+  memory.put('action_date', 'API 호출 실패');
   memory.put('product_list', '');
   memory.put('sheet_name', '');
   memory.save();
