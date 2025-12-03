@@ -7,7 +7,7 @@
 // F-상품명/증상, G-접수내용, H-휴대폰번호, I-전화번호
 //
 // 전화번호 조회: H열, I열
-// 반환 데이터: F열(상품명,증상) → product_info
+// 반환 데이터: F열(상품명,증상) → product_list
 
 const axios = require('axios');
 
@@ -19,7 +19,8 @@ const phoneNumber = context.user.profile?.mobileNumber;
 
 if (!phoneNumber) {
   console.log('[경고] 전화번호가 없습니다');
-  memory.put('product_info', '');
+  memory.put('product_list', '');
+  memory.put('sheet_name', '');
   memory.save();
   return;
 }
@@ -42,17 +43,20 @@ try {
 
   if (response.data.found) {
     // 전화번호를 찾은 경우
-    const productInfo = response.data.product_info || '';
+    const productList = response.data.product_list || '';
+    const sheetName = response.data.sheet_name || '';
 
-    memory.put('product_info', productInfo);
+    memory.put('product_list', productList);
+    memory.put('sheet_name', sheetName);
 
     console.log('[성공] 고객 정보 찾음!');
-    console.log(`   시트: ${response.data.sheet_name}`);
+    console.log(`   시트: ${sheetName}`);
     console.log(`   행: ${response.data.row}`);
-    console.log(`   상품정보: ${productInfo}`);
+    console.log(`   상품정보: ${productList}`);
   } else {
     // 전화번호를 찾지 못한 경우
-    memory.put('product_info', '');
+    memory.put('product_list', '');
+    memory.put('sheet_name', '');
 
     console.log('[실패] 고객 정보를 찾을 수 없습니다');
   }
@@ -67,6 +71,7 @@ try {
     console.log('   오류 내용:', JSON.stringify(error.response.data));
   }
 
-  memory.put('product_info', '');
+  memory.put('product_list', '');
+  memory.put('sheet_name', '');
   memory.save();
 }

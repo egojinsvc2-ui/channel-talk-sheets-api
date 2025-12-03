@@ -80,7 +80,7 @@ def search_phone_in_sheet(sheets_service, sheet_id, normalized_phone):
                     'found': True,
                     'sheet_name': sheet_name,
                     'row': found_row,
-                    'product_info': row_data.get('F', '')  # 상품명,증상
+                    'product_list': row_data.get('F', '')  # 상품명,증상
                 }
 
     # 찾지 못함
@@ -138,7 +138,7 @@ class handler(BaseHTTPRequestHandler):
 
             # 결과 반환
             if result['found']:
-                print(f"결과: 시트={result['sheet_name']}, 행={result['row']}, 상품정보={result['product_info']}")
+                print(f"결과: 시트={result['sheet_name']}, 행={result['row']}, 상품정보={result['product_list']}")
 
                 self._set_headers(200)
                 response = {
@@ -146,7 +146,7 @@ class handler(BaseHTTPRequestHandler):
                     'found': True,
                     'sheet_name': result['sheet_name'],
                     'row': result['row'],
-                    'product_info': result['product_info'],  # 상품명,증상 (F열)
+                    'product_list': result['product_list'],  # 상품명,증상 (F열)
                     'phone_normalized': normalized_phone
                 }
                 self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
@@ -159,7 +159,7 @@ class handler(BaseHTTPRequestHandler):
                 response = {
                     'status': 'success',
                     'found': False,
-                    'product_info': '',
+                    'product_list': '',
                     'phone_normalized': normalized_phone,
                     'message': '일치하는 전화번호를 찾을 수 없습니다'
                 }
